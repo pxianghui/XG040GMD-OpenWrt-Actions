@@ -1,15 +1,5 @@
 #!/bin/bash
 
-# turboacc
-# curl -sSL https://raw.githubusercontent.com/chenmozhijin/turboacc/luci/add_turboacc.sh -o add_turboacc.sh && bash add_turboacc.sh --no-sfe
-curl -sSL https://raw.githubusercontent.com/chenmozhijin/turboacc/luci/add_turboacc.sh -o add_turboacc.sh && bash add_turboacc.sh
-
-
-# OpenClash
-git clone --depth 1 https://github.com/vernesong/OpenClash.git OpenClash
-
-
-
 
 echo "===== 直接覆盖 feeds.conf.default 为新配置 ====="
 cat > feeds.conf.default << 'EOF'
@@ -29,5 +19,15 @@ echo "===== 替换后的 feeds.conf.default 内容 ====="
 cat feeds.conf.default
 
 echo "===== feeds.conf.default 覆盖完成 ====="
+
+# turboacc
+# curl -sSL https://raw.githubusercontent.com/chenmozhijin/turboacc/luci/add_turboacc.sh -o add_turboacc.sh && bash add_turboacc.sh --no-sfe
+curl -sSL https://raw.githubusercontent.com/chenmozhijin/turboacc/luci/add_turboacc.sh -o add_turboacc.sh && bash add_turboacc.sh
+
+
+# OpenClash
+git clone --depth 1 https://github.com/vernesong/OpenClash.git OpenClash
+
+
 
 
