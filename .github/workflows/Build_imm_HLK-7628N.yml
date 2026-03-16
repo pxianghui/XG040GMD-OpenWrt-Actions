@@ -205,19 +205,23 @@ jobs:
         分支: $REPO_BRANCH
         EOF
         echo "status=success" >> $GITHUB_OUTPUT
+        
+    - name: Generate file list
+      run: |
+        find ${{ env.FIRMWARE }} -type f > file_list.txt
 
     - name: Upload firmware to release
       uses: ncipollo/release-action@main
-      if: steps.tag.outputs.status == 'success' && !cancelled()
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        tag: ${{ steps.tag.outputs.release_tag }}
-        bodyFile: release.txt
-        artifacts: ${{ env.FIRMWARE }}/**
-        allowUpdates: true
-        draft: false
-        prerelease: false
+      tag: ${{ steps.tag.outputs.release_tag }}
+      bodyFile: release.txt
+      artifacts: file_list.txt
+      artifactErrorsFailBuild: false
+      allowUpdates: true
+      draft: false
+      prerelease: false
 
     - name: Delete old workflow runs via GitHub API
       if: always()
