@@ -10,6 +10,9 @@ git clone https://github.com/gSpotx2f/luci-app-cpu-perf package/luci-app-cpu-per
 # OpenClash
 git clone --depth 1 https://github.com/vernesong/OpenClash.git OpenClash
 
+#vnt
+git clone --depth 1 https://github.com/lmq8267/luci-app-vnt package/vnt
+
 
 
 
