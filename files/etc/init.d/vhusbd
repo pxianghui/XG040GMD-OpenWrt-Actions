@@ -1,14 +1,53 @@
 #!/bin/sh /etc/rc.common
-START=99
-STOP=10
 
-VHUSBD="/usr/share/virtualhere/aarch64/vhusbd"
+[ -e "/usr/bin/vhusbd" ] || {
+    hardware_name=$(uname -m)
+    cp "/usr/share/virtualhere/$hardware_name/vhusbd" "/usr/bin/vhusbd"
+    chmod 755 "/usr/bin/vhusbd"
+}
+
+[ -e "/etc/config/vhusbdconfig" ] || {
+    touch "/etc/config/vhusbdconfig"
+}
+
+grep -q "AutoAttachToKernel" "/etc/config/vhusbdconfig" || {
+    echo "AutoAttachToKernel=1" >> "/etc/config/vhusbdconfig"
+}
+
+grep -q "ServerName=" "/etc/config/vhusbdconfig" || {
+    hardware_name=$(uname -m)
+    echo 'ServerName=$HOSTNAME$('"$hardware_name"')' >> "/etc/config/vhusbdconfig"
+}
+
+START=99
+
+start_instance() {
+    local cfg="$1"
+    config_get_bool enabled "$cfg" 'enabled' '0'
+    config_get_bool ExtAccess  "$cfg" 'ExtAccess' '0'
+    config_get_bool ExtAccess6 "$cfg" 'ExtAccess6' '0' 
+
+    if [ $enabled -eq 1 ]; then
+        vhusbd -b -c /etc/config/vhusbdconfig -r /tmp/vhusbd.log
+        
+        if [ $ExtAccess -eq 1 ]; then
+            iptables -I INPUT -p tcp --dport 7575 -j ACCEPT -m comment --comment 'virtualhere port'
+        fi
+        
+        if [ $ExtAccess6 -eq 1 ]; then
+            ip6tables -I INPUT -p tcp --dport 7575 -j ACCEPT -m comment --comment 'virtualhere port v6'
+        fi
+    fi
+}
 
 start() {
-    [ -x "$VHUSBD" ] || exit 1
-    $VHUSBD -b >/dev/null 2>&1 &
+    config_load 'vhusbd'
+    config_foreach start_instance vhusbd
 }
 
 stop() {
-    killall -9 vhusbd >/dev/null 2>&1
+    iptables -D INPUT -p tcp --dport 7575 -j ACCEPT -m comment --comment 'virtualhere port' 2>/dev/null
+    ip6tables -D INPUT -p tcp --dport 7575 -j ACCEPT -m comment --comment 'virtualhere port v6' 2>/dev/null
+    
+    kill -9 `pgrep vhusbd`
 }
