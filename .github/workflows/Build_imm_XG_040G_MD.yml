@@ -155,6 +155,11 @@ jobs:
         cp -fv "${CONFIG_FILE}" openwrt/.config
         cd openwrt && make defconfig
         
+    - name: Fix permissions for custom files
+      run: |
+        chmod +x $GITHUB_WORKSPACE/files/etc/init.d/*
+        chmod +x $GITHUB_WORKSPACE/files/usr/share/virtualhere/aarch64/* 
+        chmod +x $GITHUB_WORKSPACE/files/usr/share/virtualhere/*/*
         
     - name: SSH 调试有效时间6h! 连接后输入q 输入exit即可退出，自动继续后续编译流程
       uses: mxschmitt/action-tmate@master
