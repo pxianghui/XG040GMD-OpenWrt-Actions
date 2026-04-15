@@ -1,0 +1,7 @@
+#!/bin/sh
+
+/etc/init.d/vhusbd start
+
+rm -f /tmp/luci-indexcache 2>/dev/null
+
+exit 0
