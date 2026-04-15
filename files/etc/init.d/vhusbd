@@ -1,9 +1,12 @@
 #!/bin/sh /etc/rc.common
-
 START=99
+STOP=10
+
+VHUSBD="/usr/share/virtualhere/aarch64/vhusbd"
 
 start() {
-   /usr/bin/vhusbd -b >/dev/null 2>&1 &
+    [ -x "$VHUSBD" ] || exit 1
+    $VHUSBD -b >/dev/null 2>&1 &
 }
 
 stop() {
