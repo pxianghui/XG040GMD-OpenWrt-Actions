@@ -1,0 +1,195 @@
+<%+header%>
+<style>
+.vhusbd-container {
+    max-width: 800px;
+    margin: 20px auto;
+    padding: 20px;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    font-size: 16px;
+}
+
+.vhusbd-header {
+    border-bottom: 1px solid #eee;
+    padding-bottom: 20px;
+    margin-bottom: 25px;
+    text-align: center;
+}
+
+.vhusbd-title {
+    font-size: 26px;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 8px;
+}
+
+.vhusbd-support {
+    font-size: 16px;
+    color: #e74c3c;
+    margin-bottom: 18px;
+}
+
+.vhusbd-description {
+    margin-bottom: 27px;
+    line-height: 1.7;
+    font-size: 14px;
+    text-align: center;
+}
+
+.vhusbd-description p {
+    margin: 16px 0;
+}
+
+.status-container {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 15px;
+}
+
+.status-value {
+    padding: 10px 15px;
+    font-weight: bold;
+    font-size: 20px;
+    letter-spacing: 0.5px;
+}
+
+.status-running {
+    color: #2e7d32;
+}
+
+.status-stopped {
+    color: #c62828;
+}
+
+.status-processing {
+    color: #1565c0;
+}
+
+.status-divider {
+    border-top: 1px solid #eee;
+    margin: 15px auto;
+    width: 80%;
+    max-width: 600px;
+}
+
+.actions-container {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.action-btn {
+    width: 160px;
+    padding: 12px;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+    border: none;
+    transition: all 0.3s;
+    font-size: 16px;
+}
+
+.action-btn:hover {
+    opacity: 0.9;
+    transform: translateY(-2px);
+}
+
+.btn-start {
+    background: #4CAF50;
+    color: white;
+}
+
+.btn-stop {
+    background: #F44336;
+    color: white;
+}
+
+.action-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+</style>
+
+<div class="vhusbd-container">
+    <div class="vhusbd-header">
+        <div class="vhusbd-title"><%:VirtualHere V4.8.6 服务支持：13333332211（微信同号）%></div>
+    </div>
+    
+    <div class="vhusbd-description">
+        <p><%:『激活』打开客户端→鼠标右击USB共享器→激活管理，将序列号发送给作者，获取激活代码并输入至激活信息框内。%></p>
+        <p><%:『使用』将USB设备插入服务端接口，打开客户端远程连接服务端的USB设备。接口不够用？请使用独立供电拓展坞！%></p>
+        <div style="border-top: 1px solid #eee; margin: 20px 0;"></div> 
+    </div>
+    
+    <div class="status-container">
+        <div class="status-value" id="service-status">
+            <em><%:正在检测状态...%></em>
+        </div>
+    </div>
+    
+    <div class="status-divider"></div>
+    
+    <div class="actions-container">
+        <button class="action-btn btn-start" id="start-btn" onclick="controlService('start')"><%:启动服务%></button>
+        <button class="action-btn btn-stop" id="stop-btn" onclick="controlService('stop')"><%:停止服务%></button>
+    </div>
+</div>
+
+<script>
+    function updateStatus() {
+        fetch('<%=luci.dispatcher.build_url("admin/services/vhusbd/status")%>?t=' + Date.now())
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                updateStatusDisplay(data.running);
+            });
+    }
+
+    function updateStatusDisplay(isRunning) {
+        var statusEl = document.getElementById('service-status');
+        if (isRunning) {
+            statusEl.innerHTML = '<span class="status-running"><%:VirtualHere服务正在运行%></span>';
+        } else {
+            statusEl.innerHTML = '<span class="status-stopped"><%:VirtualHere服务停止运行%></span>';
+        }
+    }
+
+    function controlService(action) {
+        var buttons = document.querySelectorAll('.action-btn');
+        var statusEl = document.getElementById('service-status');
+
+        buttons.forEach(function(btn) {
+            btn.disabled = true;
+        });
+
+        if (action === 'start') {
+            statusEl.innerHTML = '<span class="status-processing"><%:启动服务中...%></span>';
+        } else {
+            statusEl.innerHTML = '<span class="status-processing"><%:停止服务中...%></span>';
+        }
+
+        fetch('<%=luci.dispatcher.build_url("admin/services/vhusbd/control")%>', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: 'action=' + encodeURIComponent(action)
+        }).then(function() {
+            setTimeout(function() {
+                updateStatus();
+                buttons.forEach(function(btn) {
+                    btn.disabled = false;
+                });
+            }, 1000);
+        }).catch(function() {
+            updateStatus();
+            buttons.forEach(function(btn) { btn.disabled = false; });
+        });
+    }
+
+    updateStatus();
+    setInterval(updateStatus, 3000);
+</script>
+<%+footer%>
